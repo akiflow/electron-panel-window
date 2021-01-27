@@ -9,6 +9,12 @@
 @end
 
 @implementation PROPanel
+- (BOOL)canBecomeKeyWindow {
+  return YES;
+}
+- (BOOL)canBecomeMainWindow {
+  return YES;
+}
 - (BOOL)needsPanelToBecomeKey {
   return YES;
 }
