@@ -9,6 +9,6 @@ module.exports = {
     return NativeExtension.MakePanel(window.getNativeWindowHandle());
   },
   makeWindow: function(window) {
-    return NativeExtension.MakePanel(window.getNativeWindowHandle());
+    return NativeExtension.MakeWindow(window.getNativeWindowHandle());
   }
 }
