@@ -5,5 +5,6 @@
 
 NAN_METHOD(MakePanel);
 NAN_METHOD(MakeKeyWindow);
+NAN_METHOD(MakeWindow);
 
 #endif
