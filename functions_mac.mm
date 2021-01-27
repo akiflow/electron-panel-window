@@ -77,9 +77,11 @@ NAN_METHOD(MakeWindow) {
     if (!mainContentView)
       return info.GetReturnValue().Set(false);
 
-  // Convert the  NSPanel class toNSWindow
+window.styleMask &= (~NSWindowStyleMaskNonactivatingPanel);
+
+  // Convert the NSPanel class to NSWindow
   object_setClass(mainContentView.window, [NSWindow class]);
 
-  // window.styleMask &= (~NSWindowStyleMaskNonactivatingPanel);
+   
   return info.GetReturnValue().Set(true);
 }
