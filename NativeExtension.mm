@@ -8,7 +8,9 @@ using v8::FunctionTemplate;
 NAN_MODULE_INIT(InitAll) {
   Nan::Set(target, Nan::New("MakePanel").ToLocalChecked(),
     Nan::GetFunction(Nan::New<FunctionTemplate>(MakePanel)).ToLocalChecked());
-  Nan::Set(target, Nan::New("MakeKeyWindow").ToLocalChecked(),
+  Nan::Set(target, Nan::New("MakePanel").ToLocalChecked(),
+    Nan::GetFunction(Nan::New<FunctionTemplate>(MakePanel)).ToLocalChecked());
+  Nan::Set(target, Nan::New("MakeWindow").ToLocalChecked(),
     Nan::GetFunction(Nan::New<FunctionTemplate>(MakeKeyWindow)).ToLocalChecked());
   // Passing target down to the next NAN_MODULE_INIT
   // MyObject::Init(target);

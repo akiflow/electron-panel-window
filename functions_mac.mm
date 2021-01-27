@@ -62,3 +62,24 @@ NAN_METHOD(MakeKeyWindow) {
   [mainContentView.window makeKeyWindow];
   return info.GetReturnValue().Set(true);
 }
+
+NAN_METHOD(MakeWindow) {
+
+
+  v8::Local<v8::Object> handleBuffer = info[0].As<v8::Object>();
+  v8::Isolate* isolate = info.GetIsolate();
+  v8::HandleScope scope(isolate);
+
+
+  char* buffer = node::Buffer::Data(handleBuffer);
+  NSView* mainContentView = *reinterpret_cast<NSView**>(buffer);
+
+    if (!mainContentView)
+      return info.GetReturnValue().Set(false);
+
+  // Convert the  NSPanel class toNSWindow
+  object_setClass(mainContentView.window, [NSWindow class]);
+
+  // window.styleMask &= (~NSWindowStyleMaskNonactivatingPanel);
+  return info.GetReturnValue().Set(true);
+}
