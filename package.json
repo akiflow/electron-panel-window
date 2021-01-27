@@ -7,7 +7,7 @@
   "scripts": {
     "configure": "node-gyp configure",
     "prepare": "node-gyp build",
-    "build": "node-gyp build",
+    "build": "node-gyp rebuild --release --target=11.2.1 --dist-url=https://electronjs.org/headers",
     "test": "mocha"
   },
   "devDependencies": {
