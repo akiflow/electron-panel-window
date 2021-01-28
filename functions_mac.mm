@@ -23,6 +23,8 @@
 }
 @end
 
+Class electronWindowClass;
+
 NAN_METHOD(MakePanel) {
   v8::Local<v8::Object> handleBuffer = info[0].As<v8::Object>();
   v8::Isolate* isolate = info.GetIsolate();
@@ -34,8 +36,14 @@ NAN_METHOD(MakePanel) {
   if (!mainContentView)
       return info.GetReturnValue().Set(false);
 
+  //NSLog(object_getClass(mainContentView.window));
+  electronWindowClass=[mainContentView.window class];
+  NSLog(@"%@", NSStringFromClass(electronWindowClass));
+
   // Convert the NSWindow class to NSPanel
   object_setClass(mainContentView.window, [PROPanel class]);
+
+  
 
   // Ensure that the window is a "non activating panel" which means it won't activate the application
   // when it becomes key.
@@ -64,8 +72,7 @@ NAN_METHOD(MakeKeyWindow) {
 }
 
 NAN_METHOD(MakeWindow) {
-
-
+  NSLog(@"%@", NSStringFromClass(electronWindowClass));
   v8::Local<v8::Object> handleBuffer = info[0].As<v8::Object>();
   v8::Isolate* isolate = info.GetIsolate();
   v8::HandleScope scope(isolate);
@@ -77,11 +84,12 @@ NAN_METHOD(MakeWindow) {
     if (!mainContentView)
       return info.GetReturnValue().Set(false);
 
-  mainContentView.window.styleMask &= (~NSWindowStyleMaskNonactivatingPanel);
+  NSWindow* newWindow = mainContentView.window;
+  newWindow.styleMask &= (~NSWindowStyleMaskNonactivatingPanel);
+  NSLog(@"%@", NSStringFromClass(electronWindowClass));
 
-  // Convert the NSPanel class to NSWindow
-  object_setClass(mainContentView.window, [NSWindow class]);
+  // Convert the NSPanel class to watherver it was before
+  object_setClass(newWindow, electronWindowClass);
 
-   
   return info.GetReturnValue().Set(true);
 }
