@@ -1,6 +1,72 @@
-[![npm version](https://badge.fury.io/js/electron-panel-window.svg)](https://badge.fury.io/js/electron-panel-window) [![CircleCI](https://circleci.com/gh/goabstract/electron-panel-window.svg?style=svg)](https://circleci.com/gh/goabstract/electron-panel-window)
-
 # electron-panel-window
+
+This fork or electron-panel-window [electron-panel-window](https://github.com/goabstract/electron-panel-window) 
+works on macOS big sur (tested).
+
+**There are few caveats.**
+
+### `titleBarStyle` should have the value `'customButtonsOnHover'`
+This will show two buttons on top left (to close and maximize the window). You can hide them by setting:
+* `closable: false`
+* `maximizable: false`
+
+Beware that you may need some additional logic if you actually need to close the window, as `win.close()` won't work at this point.
+
+
+### `setVisibleOnAllWorkspaces(true)` cannot be used on these windows
+Apparently it causes everything to crash.
+
+### Crash on quit
+There are usually some electron crash when quitting an app with a panel window.
+Usually they can be fixed by:
+1. hiding the panel window
+2. make another window as key (use `makeKeyWindow` on another window)
+3. transform the panel in a normal window (use `makeWindow`)
+4. close the window
+5. quit the app
+
+We have noticed less/no crashes if steps 2-5 are execture after a setTimout like:
+```javascript
+win.hide()
+setTimeout(()=>{
+    electronPanelWindow.makeKeyWindow(otherWin)
+    electronPanelWindow.makeWindow(win)
+    win.close()
+    app.quit()
+})
+```
+### Other
+Removed win and linux support as it was empty in the first place.
+
+You may want to include the package dynamically:
+```
+const electronPanelWindow = process.platform === 'darwin' ? require('electron-panel-window') : undefined
+```
+
+### Issues
+Feel free to open an issue.
+
+
+# Methods
+Install
+
+```bash
+npm install @akiflow/electron-panel-window
+```
+
+require
+
+```bash
+const electronPanelWindow = process.platform === 'darwin' ? require('@akiflow/electron-panel-window') : undefined
+```
+
+1. `makeKeyWindow(win)` focus the window without activating the application
+2. `makePanel(win)` transform the given window in a panel
+3. `makeWindow(win)` transform the given panel in a window (useful before quitting)
+
+
+# OLD README of electron-panel-window
+Something may be useful, something may be outdated
 
 Enables creating a browser window in Electron that behaves like a [Panel](https://developer.apple.com/documentation/appkit/nspanel). Panels are typically used for auxillary windows and do not activate the application – as such they can appear ontop of other apps in the same way as Spotlight or 1Password, for example.
 
