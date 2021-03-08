@@ -1,15 +1,19 @@
 {
-  "name": "electron-panel-window",
+  "name": "@akiflow/electron-panel-window",
   "description": "Create Electron BrowserWindow's that act like Panels",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "author": "Tom Moor <tom@goabstract.com>",
+  "contributors": [
+    "Akiflow Inc. <developers@akiflow.com>"
+  ],
   "main": "index.js",
   "scripts": {
     "start": "electron ./test/app/index.js",
     "configure": "node-gyp configure",
     "prepare": "node-gyp build",
     "build": "node-gyp rebuild --release --target=11.2.1 --dist-url=https://electronjs.org/headers",
-    "test": "mocha"
+    "test": "mocha",
+    "install": "node-gyp rebuild"
   },
   "devDependencies": {
     "electron": "11.3.0",
@@ -23,9 +27,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/goabstract/electron-panel-window"
+    "url": "git+https://github.com/akiflow/electron-panel-window.git"
   },
   "bugs": {
-    "url": "https://github.com/goabstract/electron-panel-window/issues"
-  }
+    "url": "https://github.com/akiflow/electron-panel-window/issues"
+  },
+  "gypfile": true,
+  "homepage": "https://github.com/akiflow/electron-panel-window#readme",
+  "directories": {
+    "test": "test"
+  },
+  "license": "ISC"
 }

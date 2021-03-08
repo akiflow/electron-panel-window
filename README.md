@@ -1,11 +1,11 @@
 # electron-panel-window
 
-This fork or electron-panel-window [electron-panel-window](https://github.com/goabstract/electron-panel-window) 
-works on macOS big sur (tested).
+This fork of [electron-panel-window](https://github.com/goabstract/electron-panel-window).
+It works on macOS *big sur* (tested).
 
 **There are few caveats.**
 
-### `titleBarStyle` should have the value `'customButtonsOnHover'`
+### 1. `titleBarStyle` should have the value `'customButtonsOnHover'`
 This will show two buttons on top left (to close and maximize the window). You can hide them by setting:
 * `closable: false`
 * `maximizable: false`
@@ -13,10 +13,10 @@ This will show two buttons on top left (to close and maximize the window). You c
 Beware that you may need some additional logic if you actually need to close the window, as `win.close()` won't work at this point.
 
 
-### `setVisibleOnAllWorkspaces(true)` cannot be used on these windows
+### 2. `setVisibleOnAllWorkspaces(true)` cannot be used on these windows
 Apparently it causes everything to crash.
 
-### Crash on quit
+### 3. Crash on quit
 There are usually some electron crash when quitting an app with a panel window.
 Usually they can be fixed by:
 1. hiding the panel window
@@ -35,7 +35,8 @@ setTimeout(()=>{
     app.quit()
 })
 ```
-### Other
+
+## Other
 Removed win and linux support as it was empty in the first place.
 
 You may want to include the package dynamically:
@@ -44,7 +45,7 @@ const electronPanelWindow = process.platform === 'darwin' ? require('electron-pa
 ```
 
 ### Issues
-Feel free to open an issue.
+Feel free to open an issue, and report other "workarounds" to keep this working.
 
 
 # Methods
