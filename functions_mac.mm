@@ -46,7 +46,7 @@ NAN_METHOD(MakePanel) {
 
   // Ensure that the window is a "non activating panel" which means it won't activate the application
   // when it becomes key.
-  mainContentView.window.styleMask |= NSWindowStyleMaskNonactivatingPanel;
+  //mainContentView.window.styleMask |= NSWindowStyleMaskNonactivatingPanel;
 
   // Ensure that the window can display over the top of fullscreen apps
   [mainContentView.window setCollectionBehavior: NSWindowCollectionBehaviorTransient | NSWindowCollectionBehaviorMoveToActiveSpace | NSWindowCollectionBehaviorFullScreenAuxiliary ];
@@ -87,7 +87,7 @@ NAN_METHOD(MakeWindow) {
   newWindow.styleMask &= (~NSWindowStyleMaskNonactivatingPanel);
 
 
-  // Convert the NSPanel class to watherver it was before
+  // Convert the NSPanel class to whatever it was before
   object_setClass(newWindow, electronWindowClass);
 
   return info.GetReturnValue().Set(true);

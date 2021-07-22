@@ -1,8 +1,8 @@
-var { app, BrowserWindow } = require('electron');
-var electronPanelWindow = require('../../');
+var { app, BrowserWindow } = require('electron')
+var electronPanelWindow = require('../../')
 var path = require('path')
 
-var mainWindow = null;
+var mainWindow = null
 
 app.on('ready', function () {
   mainWindow = new BrowserWindow({
@@ -16,7 +16,7 @@ app.on('ready', function () {
     frame: false,
     transparent: true,
     // Hack below: https://github.com/electron/electron/issues/15008#issuecomment-497498135
-    titleBarStyle: "customButtonsOnHover",
+    titleBarStyle: 'customButtonsOnHover',
     minimizable: false,
     maximizable: false,
     closable: true,
@@ -26,24 +26,32 @@ app.on('ready', function () {
       enableRemoteModule: false,
       backgroundThrottling: false,
     },
-  });
+  })
   electronPanelWindow.makePanel(mainWindow)
   mainWindow.setSize(100, 100)
 
   mainWindow.loadURL('file://' + __dirname + '/index.html')
   mainWindow.on('ready-to-show', function () {
-    mainWindow.showInactive();
-  });
+    mainWindow.showInactive()
+  })
 
-
-  electronPanelWindow.makeKeyWindow(mainWindow);
+  electronPanelWindow.makeKeyWindow(mainWindow)
   setTimeout(() => {
     console.log('makeWindow')
     electronPanelWindow.makeWindow(mainWindow)
     app.dock.hide()
     setTimeout(() => {
-    //  mainWindow.closable=true
-    //  mainWindow.close()
+      //  mainWindow.closable=true
+      //  mainWindow.close()
+      function show(){
+        mainWindow.show()
+        setTimeout(hide,3000)
+      }
+      function hide(){
+        mainWindow.hide()
+        setTimeout(show,3000)
+      }
+      show()
     }, 2000)
   }, 2000)
 
