@@ -2,6 +2,7 @@
 
 This fork of [electron-panel-window](https://github.com/goabstract/electron-panel-window).
 It works on macOS *big sur* (tested).
+It works with *electron 13*. (tested).
 
 **There are few caveats.**
 
@@ -10,8 +11,9 @@ This will show two buttons on top left (to close and maximize the window). You c
 * `closable: false`
 * `maximizable: false`
 
-Beware that you may need some additional logic if you actually need to close the window, as `win.close()` won't work at this point.
+Beware that you may need some additional logic if you actually need to close the window, as `win.close()` won't work at this point. (you can check the test to see how we did this)
 
+This looks no longer necessary in version 3.
 
 ### 2. `setVisibleOnAllWorkspaces(true)` cannot be used on these windows
 Apparently it causes everything to crash.
@@ -47,7 +49,6 @@ const electronPanelWindow = process.platform === 'darwin' ? require('electron-pa
 ### Issues
 Feel free to open an issue, and report other "workarounds" to keep this working.
 
-
 # Methods
 Install
 
@@ -65,75 +66,14 @@ const electronPanelWindow = process.platform === 'darwin' ? require('@akiflow/el
 2. `makePanel(win)` transform the given window in a panel
 3. `makeWindow(win)` transform the given panel in a window (useful before quitting)
 
+# Credits
+* [Akiflow Team](https://akiflow.com)
+* [rcclerigo](https://github.com/rcclerigo)
+* [Abstract](https://www.abstract.com/)
 
-# OLD README of electron-panel-window
+---
+
+### Old README of electron-panel-window
 Something may be useful, something may be outdated
 
-Enables creating a browser window in Electron that behaves like a [Panel](https://developer.apple.com/documentation/appkit/nspanel). Panels are typically used for auxillary windows and do not activate the application – as such they can appear ontop of other apps in the same way as Spotlight or 1Password, for example.
-
-## Usage
-
-Use `PanelWindow` as you would [BrowserWindow](https://electronjs.org/docs/api/browser-window). All of the methods exposed in this module **must be used** on the main process. Using the methods in a renderer process will result in your app crashing.
-
-```javascript
-import { PanelWindow } from 'electron-panel-window';
-
-const win = new PanelWindow({
-  width: 800,
-  height: 600,
-  show: false
-})
-
-// the window will show without activating the application
-win.show();
-```
-
-You can also access the utility methods directly:
-
-```javascript
-import { remote } from 'electron';
-import { makePanel, makeKeyWindow } from 'electron-panel-window';
-
-const currentWindow = remote.getCurrentWindow();
-
-// convert the window to an NSPanel
-makePanel(currentWindow);
-
-// focus the window without activating the application
-makeKeyWindow(currentWindow);
-```
-
-## Development
-
-To compile the extension for the first time, run 
-
-```bash
-$ yarn
-$ yarn configure
-$ yarn build
-```
-
-All subsequent builds only need `yarn build`. Tests run in Spectron:
-
-```bash
-$ yarn test
-```
-
-## Contributing
-
-This project is maintained by [Abstract](https://www.goabstract.com). We are very willing to accept contributions, first please ensure there is a relavant [issue in the tracker](https://github.com/goabstract/electron-panel-window/issues) and an approach has been discussed before beginning to write code – this makes it more likely we will be able to accept your contribution and ensure nobody's time (especially yours!) is wasted.
-
-## Details
-
-File | Contents
--------------|----------------
-`NativeExtension.cc` | Represents the top level of the module. C++ constructs that are exposed to javascript are exported here
-`functions.cc` | The meat of the extension
-`index.js` | The main entry point for the node dependency
-`binding.gyp` | Describes the node native extension to the build system (`node-gyp`). If you add source files to the project, you should also add them to the binding file.
-
-## License
-
-This project is under MIT.
-See [LICENSE](https://github.com/goabstract/electron-panel-window/blob/master/LICENSE)
-
+You can find it here: [https://github.com/goabstract/electron-panel-window/](https://github.com/goabstract/electron-panel-window/)
