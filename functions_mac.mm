@@ -9,7 +9,16 @@
 
 @implementation PROPanel
 - (NSWindowStyleMask)styleMask {
-  return  NSWindowStyleMaskTexturedBackground | NSWindowStyleMaskResizable | NSWindowStyleMaskFullSizeContentView | NSWindowStyleMaskNonactivatingPanel;
+  return NSWindowStyleMaskTexturedBackground | NSWindowStyleMaskResizable | NSWindowStyleMaskFullSizeContentView | NSWindowStyleMaskNonactivatingPanel;
+}
+- (NSWindowCollectionBehavior)collectionBehavior {
+  return NSWindowCollectionBehaviorCanJoinAllSpaces | NSWindowCollectionBehaviorFullScreenAuxiliary;
+}
+- (BOOL)isFloatingPanel {
+  return YES;
+}
+- (NSWindowLevel)level {
+  return NSFloatingWindowLevel;
 }
 - (BOOL)canBecomeKeyWindow {
   return YES;
@@ -29,7 +38,7 @@
   // there is assumed setup that doesn't happen. Details of the exception this is avoiding are
   // here: https://github.com/goabstract/electron-panel-window/issues/6
   if ([keyPath isEqualToString:@"_titlebarBackdropGroupName"]) {
-    NSLog(@"removeObserver ignored");
+    // NSLog(@"removeObserver ignored");
     return;
   }
 
@@ -59,21 +68,22 @@ NAN_METHOD(MakePanel) {
 
   electronWindowClass = [mainContentView.window class];
 
-  NSLog(@"class of main window before = %@", object_getClass(mainContentView.window));
+//   NSLog(@"class of main window before = %@", object_getClass(mainContentView.window));
 
   NSWindow *nswindow = [mainContentView window];
+  nswindow.titlebarAppearsTransparent = true;
+  nswindow.titleVisibility = (NSWindowTitleVisibility)1;
 
-  NSLog(@"stylemask = %ld", mainContentView.window.styleMask);
+//   NSLog(@"stylemask = %ld", mainContentView.window.styleMask);
 
   // Convert the NSWindow class to PROPanel
   object_setClass(mainContentView.window, [PROPanel class]);
 
-  NSLog(@"class of main window after = %@", object_getClass(mainContentView.window));
-  NSLog(@"stylemask after = %ld", mainContentView.window.styleMask);
+//   NSLog(@"class of main window after = %@", object_getClass(mainContentView.window));
+//   NSLog(@"stylemask after = %ld", mainContentView.window.styleMask);
 
-  // Ensure that the window can display over the top of fullscreen apps
-  [mainContentView.window setCollectionBehavior: NSWindowCollectionBehaviorTransient | NSWindowCollectionBehaviorMoveToActiveSpace | NSWindowCollectionBehaviorFullScreenAuxiliary ];
-  [mainContentView.window setLevel:NSFloatingWindowLevel];
+
+
   return info.GetReturnValue().Set(true);
 }
 
@@ -89,6 +99,7 @@ NAN_METHOD(MakeKeyWindow) {
       return info.GetReturnValue().Set(false);
 
   [mainContentView.window makeKeyWindow];
+  [mainContentView.window makeMainWindow];
   return info.GetReturnValue().Set(true);
 }
 
@@ -98,7 +109,6 @@ NAN_METHOD(MakeWindow) {
   v8::Local<v8::Object> handleBuffer = info[0].As<v8::Object>();
   v8::Isolate* isolate = info.GetIsolate();
   v8::HandleScope scope(isolate);
-
 
   char* buffer = node::Buffer::Data(handleBuffer);
   NSView* mainContentView = *reinterpret_cast<NSView**>(buffer);

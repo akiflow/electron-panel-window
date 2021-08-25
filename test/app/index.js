@@ -37,7 +37,6 @@ app.on('ready', function () {
     width: 100,
     minWidth: 100,
     minHeight: 100,
-    fullscreenable: false,
     paintWhenInitiallyHidden: true,
     show: false,
     frame: false,
@@ -45,6 +44,8 @@ app.on('ready', function () {
     minimizable: false,
     maximizable: false,
     closable: false,
+    alwaysOnTop: true,
+    fullscreenable: true,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -52,6 +53,7 @@ app.on('ready', function () {
       backgroundThrottling: false,
     },
   })
+  panelWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true })
   electronPanelWindow.makePanel(panelWindow)
   panelWindow.setSize(200, 200)
 
