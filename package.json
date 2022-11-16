@@ -11,7 +11,7 @@
     "start": "electron ./test/app/index.js",
     "configure": "node-gyp configure",
     "prepare": "node-gyp build",
-    "build": "node-gyp rebuild --release --target=13.2.2  --dist-url=https://electronjs.org/headers",
+    "build": "node-gyp rebuild --release --target=21.2.3  --dist-url=https://electronjs.org/headers",
     "test": "mocha",
     "install": "node-gyp rebuild"
   },
