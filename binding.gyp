@@ -24,7 +24,8 @@
             "xcode_settings": {
                 "OTHER_CFLAGS": [
                     "-x objective-c++ -stdlib=libc++"
-                ]
+                ],
+                "CLANG_CXX_LANGUAGE_STANDARD": "c++17"
             }
         }
     ],
