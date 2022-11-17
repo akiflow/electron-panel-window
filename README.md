@@ -1,8 +1,8 @@
 # electron-panel-window
 
 This fork of [electron-panel-window](https://github.com/goabstract/electron-panel-window).
-It works on macOS *big sur* (tested).
-It works with *electron 13*. (tested).
+It works on **macOS Ventura** (tested).
+It works with **Electron 21.x**. (tested).
 
 **There are few caveats.**
 
