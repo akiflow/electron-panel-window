@@ -1,7 +1,7 @@
 {
   "name": "@akiflow/electron-panel-window",
   "description": "Create Electron BrowserWindow's that act like Panels",
-  "version": "4.0.0",
+  "version": "4.1.0",
   "author": "Tom Moor <tom@goabstract.com>",
   "contributors": [
     "Akiflow Inc. <developers@akiflow.com>"
