@@ -25,7 +25,8 @@
                 "OTHER_CFLAGS": [
                     "-x objective-c++ -stdlib=libc++"
                 ],
-                "CLANG_CXX_LANGUAGE_STANDARD": "c++17"
+                "CLANG_CXX_LANGUAGE_STANDARD": "c++17",
+                "MACOSX_DEPLOYMENT_TARGET": "10.13"
             }
         }
     ],
