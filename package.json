@@ -1,7 +1,7 @@
 {
   "name": "@akiflow/electron-panel-window",
   "description": "Create Electron BrowserWindow's that act like Panels",
-  "version": "7.0.0",
+  "version": "7.0.1",
   "author": "Tom Moor <tom@goabstract.com>",
   "contributors": [
     "Akiflow Inc. <developers@akiflow.com>"
@@ -19,11 +19,11 @@
     "electron": "29.1.6",
     "mocha": "10.2.0",
     "node-gyp": "10.1.0",
-    "spectron": "19.0.0",
-    "nan": "2.19.0"
+    "spectron": "19.0.0"
   },
   "dependencies": {
-    "bindings": "1.5.0"
+    "bindings": "1.5.0",
+    "nan": "2.19.0"
   },
   "repository": {
     "type": "git",
