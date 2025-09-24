@@ -51,6 +51,11 @@
 - (void)removeObserver:(NSObject *)observer forKeyPath:(NSString *)keyPath {
   [self removeObserver:observer forKeyPath:keyPath context:NULL];
 }
+- (void)disableHeadlessMode {
+  // Electron 36+ compatibility - no-op for panel windows
+  // Headless mode is typically used for testing/automation, 
+  // which doesn't apply to panel windows
+}
 @end
 
 Class electronWindowClass;
