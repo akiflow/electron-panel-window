@@ -58,9 +58,31 @@
 Class electronWindowClass;
 
 void MakePanel(const v8::FunctionCallbackInfo<v8::Value>& info) {
-  v8::Local<v8::Object> handleBuffer = info[0].As<v8::Object>();
   v8::Isolate* isolate = info.GetIsolate();
   v8::HandleScope scope(isolate);
+
+  // Validate argument count
+  if (info.Length() < 1) {
+    isolate->ThrowException(v8::Exception::TypeError(
+      v8::String::NewFromUtf8(isolate, "Missing required argument").ToLocalChecked()));
+    return;
+  }
+
+  // Validate argument is a Buffer
+  if (!node::Buffer::HasInstance(info[0])) {
+    isolate->ThrowException(v8::Exception::TypeError(
+      v8::String::NewFromUtf8(isolate, "Argument must be a Buffer").ToLocalChecked()));
+    return;
+  }
+
+  v8::Local<v8::Object> handleBuffer = info[0].As<v8::Object>();
+
+  // Validate buffer size
+  if (node::Buffer::Length(handleBuffer) < sizeof(NSView*)) {
+    isolate->ThrowException(v8::Exception::TypeError(
+      v8::String::NewFromUtf8(isolate, "Buffer is too small").ToLocalChecked()));
+    return;
+  }
 
   char* buffer = node::Buffer::Data(handleBuffer);
   NSView* mainContentView = *reinterpret_cast<NSView**>(buffer);
@@ -90,9 +112,31 @@ void MakePanel(const v8::FunctionCallbackInfo<v8::Value>& info) {
 }
 
 void MakeKeyWindow(const v8::FunctionCallbackInfo<v8::Value>& info) {
-  v8::Local<v8::Object> handleBuffer = info[0].As<v8::Object>();
   v8::Isolate* isolate = info.GetIsolate();
   v8::HandleScope scope(isolate);
+
+  // Validate argument count
+  if (info.Length() < 1) {
+    isolate->ThrowException(v8::Exception::TypeError(
+      v8::String::NewFromUtf8(isolate, "Missing required argument").ToLocalChecked()));
+    return;
+  }
+
+  // Validate argument is a Buffer
+  if (!node::Buffer::HasInstance(info[0])) {
+    isolate->ThrowException(v8::Exception::TypeError(
+      v8::String::NewFromUtf8(isolate, "Argument must be a Buffer").ToLocalChecked()));
+    return;
+  }
+
+  v8::Local<v8::Object> handleBuffer = info[0].As<v8::Object>();
+
+  // Validate buffer size
+  if (node::Buffer::Length(handleBuffer) < sizeof(NSView*)) {
+    isolate->ThrowException(v8::Exception::TypeError(
+      v8::String::NewFromUtf8(isolate, "Buffer is too small").ToLocalChecked()));
+    return;
+  }
 
   char* buffer = node::Buffer::Data(handleBuffer);
   NSView* mainContentView = *reinterpret_cast<NSView**>(buffer);
@@ -107,10 +151,31 @@ void MakeKeyWindow(const v8::FunctionCallbackInfo<v8::Value>& info) {
 
 
 void MakeWindow(const v8::FunctionCallbackInfo<v8::Value>& info) {
-
-  v8::Local<v8::Object> handleBuffer = info[0].As<v8::Object>();
   v8::Isolate* isolate = info.GetIsolate();
   v8::HandleScope scope(isolate);
+
+  // Validate argument count
+  if (info.Length() < 1) {
+    isolate->ThrowException(v8::Exception::TypeError(
+      v8::String::NewFromUtf8(isolate, "Missing required argument").ToLocalChecked()));
+    return;
+  }
+
+  // Validate argument is a Buffer
+  if (!node::Buffer::HasInstance(info[0])) {
+    isolate->ThrowException(v8::Exception::TypeError(
+      v8::String::NewFromUtf8(isolate, "Argument must be a Buffer").ToLocalChecked()));
+    return;
+  }
+
+  v8::Local<v8::Object> handleBuffer = info[0].As<v8::Object>();
+
+  // Validate buffer size
+  if (node::Buffer::Length(handleBuffer) < sizeof(NSView*)) {
+    isolate->ThrowException(v8::Exception::TypeError(
+      v8::String::NewFromUtf8(isolate, "Buffer is too small").ToLocalChecked()));
+    return;
+  }
 
   char* buffer = node::Buffer::Data(handleBuffer);
   NSView* mainContentView = *reinterpret_cast<NSView**>(buffer);
