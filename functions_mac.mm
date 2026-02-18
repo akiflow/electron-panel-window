@@ -57,7 +57,7 @@
 
 Class electronWindowClass;
 
-NAN_METHOD(MakePanel) {
+void MakePanel(const v8::FunctionCallbackInfo<v8::Value>& info) {
   v8::Local<v8::Object> handleBuffer = info[0].As<v8::Object>();
   v8::Isolate* isolate = info.GetIsolate();
   v8::HandleScope scope(isolate);
@@ -89,7 +89,7 @@ NAN_METHOD(MakePanel) {
   return info.GetReturnValue().Set(true);
 }
 
-NAN_METHOD(MakeKeyWindow) {
+void MakeKeyWindow(const v8::FunctionCallbackInfo<v8::Value>& info) {
   v8::Local<v8::Object> handleBuffer = info[0].As<v8::Object>();
   v8::Isolate* isolate = info.GetIsolate();
   v8::HandleScope scope(isolate);
@@ -106,7 +106,7 @@ NAN_METHOD(MakeKeyWindow) {
 }
 
 
-NAN_METHOD(MakeWindow) {
+void MakeWindow(const v8::FunctionCallbackInfo<v8::Value>& info) {
 
   v8::Local<v8::Object> handleBuffer = info[0].As<v8::Object>();
   v8::Isolate* isolate = info.GetIsolate();
