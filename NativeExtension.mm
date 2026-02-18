@@ -5,8 +5,8 @@ using v8::Local;
 using v8::Object;
 using v8::String;
 
-void InitAll(Local<Object> exports, Local<v8::Value>, Local<v8::Context> context, void*) {
-      v8::Isolate* isolate = context->GetIsolate();
+void InitAll(Local<Object> exports, Local<v8::Value> module, Local<v8::Context> context, void* priv) {
+      v8::Isolate* isolate = v8::Isolate::GetCurrent();
 
   exports
       ->Set(context, String::NewFromUtf8(isolate, "MakePanel").ToLocalChecked(),
