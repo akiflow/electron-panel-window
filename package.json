@@ -8,11 +8,11 @@
   ],
   "main": "index.js",
   "scripts": {
-    "start": "npm run build && electron ./test/app/index.js",
+    "start": "yarn build && electron ./test/app/index.js",
     "configure": "node-gyp configure",
     "prepare": "node-gyp build",
     "build": "node-gyp rebuild --release --target=40.4.1  --dist-url=https://electronjs.org/headers",
-    "test": "npm run build && mocha",
+    "test": "yarn build && mocha",
     "install": "node-gyp rebuild"
   },
   "devDependencies": {
@@ -22,6 +22,9 @@
   },
   "dependencies": {
     "bindings": "1.5.0"
+  },
+  "engines": {
+    "node": ">=22 <25"
   },
   "repository": {
     "type": "git",
