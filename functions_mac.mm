@@ -57,16 +57,47 @@
 
 Class electronWindowClass;
 
-void MakePanel(const v8::FunctionCallbackInfo<v8::Value>& info) {
+static bool TryGetMainContentView(
+    const v8::FunctionCallbackInfo<v8::Value>& info,
+    NSView** mainContentView) {
+  if (info.Length() < 1 || !info[0]->IsObject()) {
+    info.GetReturnValue().Set(false);
+    return false;
+  }
+
   v8::Local<v8::Object> handleBuffer = info[0].As<v8::Object>();
-  v8::Isolate* isolate = info.GetIsolate();
-  v8::HandleScope scope(isolate);
+  if (!node::Buffer::HasInstance(handleBuffer)) {
+    info.GetReturnValue().Set(false);
+    return false;
+  }
+
+  if (node::Buffer::Length(handleBuffer) < sizeof(NSView*)) {
+    info.GetReturnValue().Set(false);
+    return false;
+  }
 
   char* buffer = node::Buffer::Data(handleBuffer);
-  NSView* mainContentView = *reinterpret_cast<NSView**>(buffer);
+  if (!buffer) {
+    info.GetReturnValue().Set(false);
+    return false;
+  }
 
-  if (!mainContentView)
-      return info.GetReturnValue().Set(false);
+  *mainContentView = *reinterpret_cast<NSView**>(buffer);
+  if (!(*mainContentView)) {
+    info.GetReturnValue().Set(false);
+    return false;
+  }
+
+  return true;
+}
+
+void MakePanel(const v8::FunctionCallbackInfo<v8::Value>& info) {
+  v8::Isolate* isolate = info.GetIsolate();
+  v8::HandleScope scope(isolate);
+  NSView* mainContentView = nil;
+  if (!TryGetMainContentView(info, &mainContentView)) {
+    return;
+  }
 
   electronWindowClass = [mainContentView.window class];
 
@@ -90,15 +121,12 @@ void MakePanel(const v8::FunctionCallbackInfo<v8::Value>& info) {
 }
 
 void MakeKeyWindow(const v8::FunctionCallbackInfo<v8::Value>& info) {
-  v8::Local<v8::Object> handleBuffer = info[0].As<v8::Object>();
   v8::Isolate* isolate = info.GetIsolate();
   v8::HandleScope scope(isolate);
-
-  char* buffer = node::Buffer::Data(handleBuffer);
-  NSView* mainContentView = *reinterpret_cast<NSView**>(buffer);
-
-  if (!mainContentView)
-      return info.GetReturnValue().Set(false);
+  NSView* mainContentView = nil;
+  if (!TryGetMainContentView(info, &mainContentView)) {
+    return;
+  }
 
   [mainContentView.window makeKeyWindow];
   [mainContentView.window makeMainWindow];
@@ -108,15 +136,12 @@ void MakeKeyWindow(const v8::FunctionCallbackInfo<v8::Value>& info) {
 
 void MakeWindow(const v8::FunctionCallbackInfo<v8::Value>& info) {
 
-  v8::Local<v8::Object> handleBuffer = info[0].As<v8::Object>();
   v8::Isolate* isolate = info.GetIsolate();
   v8::HandleScope scope(isolate);
-
-  char* buffer = node::Buffer::Data(handleBuffer);
-  NSView* mainContentView = *reinterpret_cast<NSView**>(buffer);
-
-    if (!mainContentView)
-      return info.GetReturnValue().Set(false);
+  NSView* mainContentView = nil;
+  if (!TryGetMainContentView(info, &mainContentView)) {
+    return;
+  }
 
   NSWindow* newWindow = mainContentView.window;
 
