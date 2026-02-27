@@ -9,7 +9,8 @@
 
 @implementation PROPanel
 - (NSWindowStyleMask)styleMask {
-  return NSWindowStyleMaskTexturedBackground | NSWindowStyleMaskResizable | NSWindowStyleMaskFullSizeContentView | NSWindowStyleMaskNonactivatingPanel;
+  NSWindowStyleMask baseMask = [super styleMask];
+  return baseMask | NSWindowStyleMaskTexturedBackground | NSWindowStyleMaskFullSizeContentView | NSWindowStyleMaskNonactivatingPanel;
 }
 - (NSWindowCollectionBehavior)collectionBehavior {
   return NSWindowCollectionBehaviorCanJoinAllSpaces | NSWindowCollectionBehaviorFullScreenAuxiliary;
