@@ -1,6 +1,7 @@
 var { app, BrowserWindow, globalShortcut } = require('electron')
 var electronPanelWindow = require('../../')
 var path = require('path')
+var isE2ETest = process.env.PANEL_WINDOW_E2E === '1'
 
 var panelWindow = null
 var mainWindow = null
@@ -65,6 +66,17 @@ app.on('ready', function () {
   function showPanel () {
     panelWindow.showInactive()
     electronPanelWindow.makeKeyWindow(panelWindow)
+    if (isE2ETest) {
+      setTimeout(() => {
+        if (!panelWindow || panelWindow.isDestroyed() || !panelWindow.isVisible()) {
+          console.log('PANEL_WINDOW_NOT_VISIBLE')
+          app.exit(1)
+          return
+        }
+        console.log('PANEL_WINDOW_READY')
+        app.quit()
+      }, 200)
+    }
 
   }
 
@@ -84,9 +96,15 @@ app.on('ready', function () {
     console.warn('Global shortcut registration failed (cli)')
   }
 
-  setTimeout(() => {
-    showPanel()
-  }, 1000)
+  if (isE2ETest) {
+    panelWindow.once('ready-to-show', function () {
+      showPanel()
+    })
+  } else {
+    setTimeout(() => {
+      showPanel()
+    }, 1000)
+  }
 
   let closable = false
   app.on('before-quit', (e) => {
