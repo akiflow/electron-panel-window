@@ -2,6 +2,7 @@ var { app, BrowserWindow, globalShortcut } = require('electron')
 var electronPanelWindow = require('../../')
 var path = require('path')
 var isE2ETest = process.env.PANEL_WINDOW_E2E === '1'
+var e2eScenario = process.env.PANEL_WINDOW_E2E_SCENARIO || 'show-panel'
 
 var panelWindow = null
 var mainWindow = null
@@ -63,6 +64,47 @@ app.on('ready', function () {
     panelWindow.showInactive()
   })
 
+  function reportFailure (marker, message) {
+    if (message) {
+      console.error(message)
+    }
+    console.log(marker)
+    app.exit(1)
+  }
+
+  function runQuitFlowScenario () {
+    if (!panelWindow || panelWindow.isDestroyed()) {
+      reportFailure('PANEL_WINDOW_QUIT_FLOW_FAILED', 'Panel window is not available for quit-flow scenario.')
+      return
+    }
+
+    if (!mainWindow || mainWindow.isDestroyed()) {
+      reportFailure('PANEL_WINDOW_QUIT_FLOW_FAILED', 'Main window is not available for quit-flow scenario.')
+      return
+    }
+
+    // Exercise repeated transitions so the E2E covers the idempotent native paths.
+    electronPanelWindow.makePanel(panelWindow)
+    panelWindow.hide()
+    electronPanelWindow.makeKeyWindow(mainWindow)
+    electronPanelWindow.makeWindow(panelWindow)
+    electronPanelWindow.makeWindow(panelWindow)
+    panelWindow.setClosable(true)
+
+    panelWindow.once('closed', function () {
+      console.log('PANEL_WINDOW_QUIT_FLOW_OK')
+      app.exit(0)
+    })
+
+    setTimeout(function () {
+      if (panelWindow && !panelWindow.isDestroyed()) {
+        reportFailure('PANEL_WINDOW_QUIT_FLOW_FAILED', 'Panel window did not close after makeWindow().')
+      }
+    }, 1000)
+
+    panelWindow.close()
+  }
+
   function showPanel () {
     panelWindow.showInactive()
     electronPanelWindow.makeKeyWindow(panelWindow)
@@ -73,8 +115,12 @@ app.on('ready', function () {
           app.exit(1)
           return
         }
+        if (e2eScenario === 'quit-flow') {
+          runQuitFlowScenario()
+          return
+        }
         console.log('PANEL_WINDOW_READY')
-        app.quit()
+        app.exit(0)
       }, 200)
     }
 
@@ -108,6 +154,10 @@ app.on('ready', function () {
 
   let closable = false
   app.on('before-quit', (e) => {
+    if (isE2ETest) {
+      return
+    }
+
     if (!closable) {
       closable = true
       electronPanelWindow.makeWindow(panelWindow)
