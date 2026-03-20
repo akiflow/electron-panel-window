@@ -37,7 +37,8 @@
   // This is due to us changing the class from NSWindow -> NSPanel at runtime, it's possible
   // there is assumed setup that doesn't happen. Details of the exception this is avoiding are
   // here: https://github.com/goabstract/electron-panel-window/issues/6
-  if ([keyPath isEqualToString:@"_titlebarBackdropGroupName"]) {
+  if ([keyPath isEqualToString:@"_titlebarBackdropGroupName"] ||
+      [keyPath isEqualToString:@"backgroundColor"]) {
     // NSLog(@"removeObserver ignored");
     return;
   }
@@ -55,7 +56,7 @@
 }
 @end
 
-Class electronWindowClass;
+static const void *kOriginalWindowClassKey = &kOriginalWindowClassKey;
 
 NAN_METHOD(MakePanel) {
   v8::Local<v8::Object> handleBuffer = info[0].As<v8::Object>();
@@ -68,18 +69,33 @@ NAN_METHOD(MakePanel) {
   if (!mainContentView)
       return info.GetReturnValue().Set(false);
 
-  electronWindowClass = [mainContentView.window class];
+  NSWindow *nswindow = [mainContentView window];
+  if (!nswindow) {
+    info.GetReturnValue().Set(false);
+    return;
+  }
 
 //   NSLog(@"class of main window before = %@", object_getClass(mainContentView.window));
 
-  NSWindow *nswindow = [mainContentView window];
+  if ([nswindow isKindOfClass:[PROPanel class]]) {
+    return info.GetReturnValue().Set(true);
+  }
+
+  Class originalWindowClass = object_getClass(nswindow);
+  if (objc_getAssociatedObject(nswindow, kOriginalWindowClassKey) == nil) {
+    objc_setAssociatedObject(nswindow,
+                             kOriginalWindowClassKey,
+                             originalWindowClass,
+                             OBJC_ASSOCIATION_ASSIGN);
+  }
+
   nswindow.titlebarAppearsTransparent = true;
   nswindow.titleVisibility = (NSWindowTitleVisibility)1;
 
 //   NSLog(@"stylemask = %ld", mainContentView.window.styleMask);
 
   // Convert the NSWindow class to PROPanel
-  object_setClass(mainContentView.window, [PROPanel class]);
+  object_setClass(nswindow, [PROPanel class]);
 
 //   NSLog(@"class of main window after = %@", object_getClass(mainContentView.window));
 //   NSLog(@"stylemask after = %ld", mainContentView.window.styleMask);
@@ -119,9 +135,23 @@ NAN_METHOD(MakeWindow) {
       return info.GetReturnValue().Set(false);
 
   NSWindow* newWindow = mainContentView.window;
+  if (!newWindow) {
+    info.GetReturnValue().Set(false);
+    return;
+  }
+
+  if (![newWindow isKindOfClass:[PROPanel class]]) {
+    return info.GetReturnValue().Set(true);
+  }
+
+  Class originalWindowClass = (Class)objc_getAssociatedObject(newWindow, kOriginalWindowClassKey);
+  if (originalWindowClass == Nil) {
+    info.GetReturnValue().Set(false);
+    return;
+  }
 
   // Convert the NSPanel class to whatever it was before
-  object_setClass(newWindow, electronWindowClass);
+  object_setClass(newWindow, originalWindowClass);
 
   return info.GetReturnValue().Set(true);
 }

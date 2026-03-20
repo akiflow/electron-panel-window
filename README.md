@@ -38,6 +38,8 @@ setTimeout(()=>{
 })
 ```
 
+`destroy()` is not considered safe on a window that is still panelized. `close()` is also not considered safe until you first call `makeWindow(win)`.
+
 ## Other
 Removed win and linux support as it was empty in the first place.
 
@@ -64,7 +66,7 @@ const electronPanelWindow = process.platform === 'darwin' ? require('@akiflow/el
 
 1. `makeKeyWindow(win)` focus the window without activating the application
 2. `makePanel(win)` transform the given window in a panel
-3. `makeWindow(win)` transform the given panel in a window (useful before quitting)
+3. `makeWindow(win)` transform the given panel in a window (required before `close()` or `destroy()` on macOS)
 
 # Credits
 * [Akiflow Team](https://akiflow.com)
