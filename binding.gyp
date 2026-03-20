@@ -4,9 +4,6 @@
             "target_name": "NativeExtension",
             "sources": [ ],
             'cflags_cc': ['-std=c++20'],
-            "include_dirs" : [
- 	 			      "<!(node -e \"require('nan')\")"
-			      ],
             "link_settings": {
               "conditions":[
                   ['OS=="mac"', {
