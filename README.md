@@ -2,7 +2,7 @@
 
 This fork of [electron-panel-window](https://github.com/goabstract/electron-panel-window).
 It works on **macOS Ventura** (tested).
-It works with **Electron 40.x**. (tested).
+It works with **Electron 43.1.0**. (tested).
 
 **There are few caveats.**
 

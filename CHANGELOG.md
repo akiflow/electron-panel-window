@@ -1,3 +1,7 @@
+# 10.1.0
+- update Electron target and test dependency to v43.1.0
+- document Electron 43.1.0 support in README
+
 # 10.0.1
 - guard `PROPanel.removeObserver(...)` against `backgroundColor` teardown on recent macOS versions
 - store the original window class per window instead of using a global class slot
