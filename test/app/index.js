@@ -1,8 +1,10 @@
 var { app, BrowserWindow, globalShortcut } = require('electron')
 var electronPanelWindow = require('../../')
+var nativeExtension = require('../../build/Release/NativeExtension')
 var path = require('path')
 var isE2ETest = process.env.PANEL_WINDOW_E2E === '1'
 var e2eScenario = process.env.PANEL_WINDOW_E2E_SCENARIO || 'show-panel'
+var isNonactivatingPanelScenario = e2eScenario === 'nonactivating-panel'
 
 var panelWindow = null
 var mainWindow = null
@@ -48,6 +50,7 @@ app.on('ready', function () {
     closable: false,
     alwaysOnTop: true,
     fullscreenable: true,
+    focusable: !isNonactivatingPanelScenario,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -70,6 +73,15 @@ app.on('ready', function () {
     }
     console.log(marker)
     app.exit(1)
+  }
+
+  function reportSuccess (marker) {
+    if (panelWindow && !panelWindow.isDestroyed()) {
+      panelWindow.hide()
+      electronPanelWindow.makeWindow(panelWindow)
+    }
+    console.log(marker)
+    app.exit(0)
   }
 
   function runQuitFlowScenario () {
@@ -105,6 +117,26 @@ app.on('ready', function () {
     panelWindow.close()
   }
 
+  function runNonactivatingPanelScenario () {
+    var windowInfo = nativeExtension.GetWindowInfo(panelWindow.getNativeWindowHandle())
+    var isNonactivating = windowInfo &&
+      !windowInfo.hasTitledStyle &&
+      windowInfo.hasNonactivatingPanelStyle &&
+      !windowInfo.canBecomeKeyWindow &&
+      !windowInfo.canBecomeMainWindow &&
+      !panelWindow.isFocused()
+
+    if (!isNonactivating) {
+      reportFailure(
+        'PANEL_WINDOW_NONACTIVATING_FAILED',
+        `Unfocusable panel became activating: ${JSON.stringify({ ...windowInfo, isFocused: panelWindow.isFocused() })}`
+      )
+      return
+    }
+
+    reportSuccess('PANEL_WINDOW_NONACTIVATING_OK')
+  }
+
   function showPanel () {
     panelWindow.showInactive()
     electronPanelWindow.makeKeyWindow(panelWindow)
@@ -119,8 +151,11 @@ app.on('ready', function () {
           runQuitFlowScenario()
           return
         }
-        console.log('PANEL_WINDOW_READY')
-        app.exit(0)
+        if (e2eScenario === 'nonactivating-panel') {
+          runNonactivatingPanelScenario()
+          return
+        }
+        reportSuccess('PANEL_WINDOW_READY')
       }, 200)
     }
 

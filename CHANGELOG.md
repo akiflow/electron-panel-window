@@ -1,3 +1,7 @@
+# Unreleased
+- keep frameless nonactivating panels from retaining a hidden activating title bar
+- preserve Electron's `focusable` behavior when converting a window to a panel
+
 # 10.1.0
 - update Electron target and test dependency to v43.1.0
 - document Electron 43.1.0 support in README

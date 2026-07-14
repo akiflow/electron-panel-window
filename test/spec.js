@@ -104,4 +104,15 @@ describe('PanelWindow', function () {
       assert.ok(true)
     })
   })
+
+  it('keeps an unfocusable panel nonactivating', function () {
+    return runE2EApp({
+      scenario: 'nonactivating-panel',
+      successMarker: 'PANEL_WINDOW_NONACTIVATING_OK',
+      failureMarker: 'PANEL_WINDOW_NONACTIVATING_FAILED',
+      timeoutMs: 12000
+    }).then(() => {
+      assert.ok(true)
+    })
+  })
 })

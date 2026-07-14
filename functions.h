@@ -8,5 +8,6 @@
 void MakePanel(const v8::FunctionCallbackInfo<v8::Value>& info);
 void MakeKeyWindow(const v8::FunctionCallbackInfo<v8::Value>& info);
 void MakeWindow(const v8::FunctionCallbackInfo<v8::Value>& info);
+void GetWindowInfo(const v8::FunctionCallbackInfo<v8::Value>& info);
 
 #endif

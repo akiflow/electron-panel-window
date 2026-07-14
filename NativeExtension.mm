@@ -20,6 +20,10 @@ void InitAll(Local<Object> exports, Local<v8::Value> module, Local<v8::Context> 
       ->Set(context, String::NewFromUtf8(isolate, "MakeKeyWindow").ToLocalChecked(),
             FunctionTemplate::New(isolate, MakeKeyWindow)->GetFunction(context).ToLocalChecked())
       .Check();
+  exports
+      ->Set(context, String::NewFromUtf8(isolate, "GetWindowInfo").ToLocalChecked(),
+            FunctionTemplate::New(isolate, GetWindowInfo)->GetFunction(context).ToLocalChecked())
+      .Check();
 }
 
 NODE_MODULE_CONTEXT_AWARE(NativeExtension, InitAll)

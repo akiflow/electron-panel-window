@@ -4,12 +4,19 @@
 #import <objc/objc-runtime.h>
 #include "functions.h"
 
+static const void *kOriginalWindowClassKey = &kOriginalWindowClassKey;
+static const void *kCanBecomeKeyWindowKey = &kCanBecomeKeyWindowKey;
+static const void *kCanBecomeMainWindowKey = &kCanBecomeMainWindowKey;
+
 @interface PROPanel : NSWindow
 @end
 
 @implementation PROPanel
 - (NSWindowStyleMask)styleMask {
-  NSWindowStyleMask baseMask = [super styleMask];
+  // Frameless Electron windows retain NSWindowStyleMaskTitled to provide rounded
+  // corners. On a nonactivating panel, that hidden title bar activates the app
+  // when clicked, so preserve the other BrowserWindow flags but remove this one.
+  NSWindowStyleMask baseMask = [super styleMask] & ~NSWindowStyleMaskTitled;
   return baseMask | NSWindowStyleMaskTexturedBackground | NSWindowStyleMaskFullSizeContentView | NSWindowStyleMaskNonactivatingPanel;
 }
 - (NSWindowCollectionBehavior)collectionBehavior {
@@ -22,13 +29,15 @@
   return NSFloatingWindowLevel;
 }
 - (BOOL)canBecomeKeyWindow {
-  return YES;
+  NSNumber *value = objc_getAssociatedObject(self, kCanBecomeKeyWindowKey);
+  return value ? value.boolValue : NO;
 }
 - (BOOL)canBecomeMainWindow {
-  return YES;
+  NSNumber *value = objc_getAssociatedObject(self, kCanBecomeMainWindowKey);
+  return value ? value.boolValue : NO;
 }
 - (BOOL)needsPanelToBecomeKey {
-  return YES;
+  return self.canBecomeKeyWindow;
 }
 - (BOOL)acceptsFirstResponder {
   return YES;
@@ -56,8 +65,6 @@
 - (void)disableHeadlessMode {
 }
 @end
-
-static const void *kOriginalWindowClassKey = &kOriginalWindowClassKey;
 
 static bool TryGetMainContentView(
     const v8::FunctionCallbackInfo<v8::Value>& info,
@@ -93,6 +100,46 @@ static bool TryGetMainContentView(
   return true;
 }
 
+void GetWindowInfo(const v8::FunctionCallbackInfo<v8::Value>& info) {
+  v8::Isolate* isolate = info.GetIsolate();
+  v8::HandleScope scope(isolate);
+  NSView* mainContentView = nil;
+  if (!TryGetMainContentView(info, &mainContentView)) {
+    return;
+  }
+
+  NSWindow* window = mainContentView.window;
+  if (!window) {
+    info.GetReturnValue().Set(false);
+    return;
+  }
+
+  v8::Local<v8::Context> context = isolate->GetCurrentContext();
+  v8::Local<v8::Object> result = v8::Object::New(isolate);
+  result
+      ->Set(context,
+            v8::String::NewFromUtf8Literal(isolate, "hasTitledStyle"),
+            v8::Boolean::New(isolate, (window.styleMask & NSWindowStyleMaskTitled) != 0))
+      .Check();
+  result
+      ->Set(context,
+            v8::String::NewFromUtf8Literal(isolate, "hasNonactivatingPanelStyle"),
+            v8::Boolean::New(isolate, (window.styleMask & NSWindowStyleMaskNonactivatingPanel) != 0))
+      .Check();
+  result
+      ->Set(context,
+            v8::String::NewFromUtf8Literal(isolate, "canBecomeKeyWindow"),
+            v8::Boolean::New(isolate, window.canBecomeKeyWindow))
+      .Check();
+  result
+      ->Set(context,
+            v8::String::NewFromUtf8Literal(isolate, "canBecomeMainWindow"),
+            v8::Boolean::New(isolate, window.canBecomeMainWindow))
+      .Check();
+
+  info.GetReturnValue().Set(result);
+}
+
 void MakePanel(const v8::FunctionCallbackInfo<v8::Value>& info) {
   v8::Isolate* isolate = info.GetIsolate();
   v8::HandleScope scope(isolate);
@@ -120,6 +167,14 @@ void MakePanel(const v8::FunctionCallbackInfo<v8::Value>& info) {
                              originalWindowClass,
                              OBJC_ASSOCIATION_ASSIGN);
   }
+  objc_setAssociatedObject(nswindow,
+                           kCanBecomeKeyWindowKey,
+                           @([nswindow canBecomeKeyWindow]),
+                           OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+  objc_setAssociatedObject(nswindow,
+                           kCanBecomeMainWindowKey,
+                           @([nswindow canBecomeMainWindow]),
+                           OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 
   nswindow.titlebarAppearsTransparent = true;
   nswindow.titleVisibility = (NSWindowTitleVisibility)1;
@@ -145,8 +200,13 @@ void MakeKeyWindow(const v8::FunctionCallbackInfo<v8::Value>& info) {
     return;
   }
 
-  [mainContentView.window makeKeyWindow];
-  [mainContentView.window makeMainWindow];
+  NSWindow* window = mainContentView.window;
+  if ([window canBecomeKeyWindow]) {
+    [window makeKeyWindow];
+  }
+  if ([window canBecomeMainWindow]) {
+    [window makeMainWindow];
+  }
   return info.GetReturnValue().Set(true);
 }
 
@@ -178,6 +238,8 @@ void MakeWindow(const v8::FunctionCallbackInfo<v8::Value>& info) {
 
   // Convert the NSPanel class to whatever it was before
   object_setClass(newWindow, originalWindowClass);
+  objc_setAssociatedObject(newWindow, kCanBecomeKeyWindowKey, nil, OBJC_ASSOCIATION_ASSIGN);
+  objc_setAssociatedObject(newWindow, kCanBecomeMainWindowKey, nil, OBJC_ASSOCIATION_ASSIGN);
 
   return info.GetReturnValue().Set(true);
 }
