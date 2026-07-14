@@ -1,4 +1,4 @@
-# Unreleased
+# 10.1.1
 - keep frameless nonactivating panels from retaining a hidden activating title bar
 - preserve Electron's `focusable` behavior when converting a window to a panel
 
