@@ -1,3 +1,8 @@
+# 10.2.0
+- implement `orderFrontKeepWindowKeyState` on `PROPanel`: Chromium 150 (Electron 43) sends it from the `BrowserWindow.showInactive()` path, and the class swap dropped the original implementation, crashing the app with `NSInvalidArgumentException` (Sentry DESKTOP-APP-KV6)
+- set the WindowServer "prevents activation" tag in `makePanel()` (cleared in `makeWindow()`): the NSWindowStyleMaskNonactivatingPanel bit reported by the styleMask getter is only synced to the WindowServer during real NSPanel initialization, so class-swapped panels were still activating the app on click (AKI-10880)
+- expose `getWindowInfo(window)` from the JS API, now also reporting `isPanel`, `preventsActivation` and `respondsToOrderFrontKeepWindowKeyState`
+
 # 10.1.1
 - keep frameless nonactivating panels from retaining a hidden activating title bar
 - preserve Electron's `focusable` behavior when converting a window to a panel

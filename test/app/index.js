@@ -120,6 +120,7 @@ app.on('ready', function () {
   function runNonactivatingPanelScenario () {
     var windowInfo = nativeExtension.GetWindowInfo(panelWindow.getNativeWindowHandle())
     var isNonactivating = windowInfo &&
+      windowInfo.isPanel &&
       !windowInfo.hasTitledStyle &&
       windowInfo.hasNonactivatingPanelStyle &&
       !windowInfo.canBecomeKeyWindow &&
@@ -130,6 +131,48 @@ app.on('ready', function () {
       reportFailure(
         'PANEL_WINDOW_NONACTIVATING_FAILED',
         `Unfocusable panel became activating: ${JSON.stringify({ ...windowInfo, isFocused: panelWindow.isFocused() })}`
+      )
+      return
+    }
+
+    // Chromium sends this selector on the BrowserWindow.showInactive() path
+    // (Electron >= 43); losing it in the class swap crashes the whole app
+    // with an unrecognized-selector exception.
+    if (!windowInfo.respondsToOrderFrontKeepWindowKeyState) {
+      reportFailure(
+        'PANEL_WINDOW_NONACTIVATING_FAILED',
+        `Panel lost the orderFrontKeepWindowKeyState selector Chromium calls on showInactive(): ${JSON.stringify(windowInfo)}`
+      )
+      return
+    }
+
+    // The WindowServer-side tag is what actually stops a click on the panel
+    // from activating the app; the styleMask bit alone is not honored for
+    // class-swapped windows. null means the private API probe is unavailable.
+    if (windowInfo.preventsActivation === false) {
+      reportFailure(
+        'PANEL_WINDOW_NONACTIVATING_FAILED',
+        `makePanel() did not set the WindowServer prevents-activation tag: ${JSON.stringify(windowInfo)}`
+      )
+      return
+    }
+    if (windowInfo.preventsActivation === null) {
+      console.warn('preventsActivation introspection unavailable on this macOS version; tag assertion skipped')
+    }
+
+    electronPanelWindow.makeWindow(panelWindow)
+    var revertedInfo = nativeExtension.GetWindowInfo(panelWindow.getNativeWindowHandle())
+    if (!revertedInfo || revertedInfo.isPanel !== false) {
+      reportFailure(
+        'PANEL_WINDOW_NONACTIVATING_FAILED',
+        `makeWindow() did not restore the original window class: ${JSON.stringify(revertedInfo)}`
+      )
+      return
+    }
+    if (revertedInfo.preventsActivation === true) {
+      reportFailure(
+        'PANEL_WINDOW_NONACTIVATING_FAILED',
+        `makeWindow() did not clear the WindowServer prevents-activation tag: ${JSON.stringify(revertedInfo)}`
       )
       return
     }
@@ -153,6 +196,15 @@ app.on('ready', function () {
         }
         if (e2eScenario === 'nonactivating-panel') {
           runNonactivatingPanelScenario()
+          return
+        }
+        // Cycle through the showInactive() path again: on Electron >= 43 it
+        // reaches orderFrontKeepWindowKeyState, which panels must implement.
+        panelWindow.hide()
+        panelWindow.showInactive()
+        if (!panelWindow.isVisible()) {
+          console.log('PANEL_WINDOW_NOT_VISIBLE')
+          app.exit(1)
           return
         }
         reportSuccess('PANEL_WINDOW_READY')

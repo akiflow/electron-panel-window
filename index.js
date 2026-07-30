@@ -13,5 +13,10 @@ module.exports = {
   makeWindow: function(window) {
     if (!isMac) return;
     return NativeExtension.MakeWindow(window.getNativeWindowHandle());
+  },
+  getWindowInfo: function(window) {
+    if (!isMac) return null;
+    var windowInfo = NativeExtension.GetWindowInfo(window.getNativeWindowHandle());
+    return typeof windowInfo === 'object' && windowInfo !== null ? windowInfo : null;
   }
 }

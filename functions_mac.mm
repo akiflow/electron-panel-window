@@ -2,11 +2,39 @@
 #import <Foundation/Foundation.h>
 #import <AppKit/AppKit.h>
 #import <objc/objc-runtime.h>
+#import <objc/message.h>
 #include "functions.h"
 
 static const void *kOriginalWindowClassKey = &kOriginalWindowClassKey;
 static const void *kCanBecomeKeyWindowKey = &kCanBecomeKeyWindowKey;
 static const void *kCanBecomeMainWindowKey = &kCanBecomeMainWindowKey;
+
+// NSWindowStyleMaskNonactivatingPanel is only honored end-to-end for windows
+// initialized as NSPanel: AppKit syncs the mask to a WindowServer-side
+// "prevents activation" tag during NSPanel init. Reporting the mask from the
+// styleMask getter of a class-swapped NSWindow never sets that tag, so the
+// WindowServer keeps treating the window as a normal activating window and a
+// click on the panel still activates the owning app (AKI-10880). Toggling the
+// private tag directly is the only way to get true non-activating behavior on
+// a window that was not born an NSPanel.
+static void SetPreventsActivation(NSWindow *window, BOOL prevents) {
+  SEL selector = NSSelectorFromString(@"_setPreventsActivation:");
+  if ([window respondsToSelector:selector]) {
+    ((void (*)(id, SEL, BOOL))objc_msgSend)(window, selector, prevents);
+  }
+}
+
+// Reads the tag back for introspection/tests. `available` reports whether the
+// private getter exists on this macOS version.
+static BOOL GetPreventsActivation(NSWindow *window, BOOL *available) {
+  SEL selector = NSSelectorFromString(@"_preventsActivation");
+  if ([window respondsToSelector:selector]) {
+    *available = YES;
+    return ((BOOL (*)(id, SEL))objc_msgSend)(window, selector);
+  }
+  *available = NO;
+  return NO;
+}
 
 @interface PROPanel : NSWindow
 @end
@@ -63,6 +91,16 @@ static const void *kCanBecomeMainWindowKey = &kCanBecomeMainWindowKey;
   [self removeObserver:observer forKeyPath:keyPath context:NULL];
 }
 - (void)disableHeadlessMode {
+}
+// Chromium's NativeWidgetMacNSWindow implements this selector and
+// NativeWidgetNSWindowBridge::SetVisibilityState() sends it to the window on
+// the BrowserWindow.showInactive() path since Electron 43 (Chromium 150).
+// object_setClass() drops the original class chain, so without a local
+// implementation the message raises NSInvalidArgumentException and takes the
+// whole app down. Mirror Chromium: order front without changing key-window
+// state.
+- (void)orderFrontKeepWindowKeyState {
+  [self orderWindow:NSWindowAbove relativeTo:0];
 }
 @end
 
@@ -136,6 +174,28 @@ void GetWindowInfo(const v8::FunctionCallbackInfo<v8::Value>& info) {
             v8::String::NewFromUtf8Literal(isolate, "canBecomeMainWindow"),
             v8::Boolean::New(isolate, window.canBecomeMainWindow))
       .Check();
+  result
+      ->Set(context,
+            v8::String::NewFromUtf8Literal(isolate, "isPanel"),
+            v8::Boolean::New(isolate, [window isKindOfClass:[PROPanel class]]))
+      .Check();
+
+  BOOL preventsActivationAvailable = NO;
+  BOOL preventsActivation = GetPreventsActivation(window, &preventsActivationAvailable);
+  result
+      ->Set(context,
+            v8::String::NewFromUtf8Literal(isolate, "preventsActivation"),
+            preventsActivationAvailable
+                ? v8::Local<v8::Value>(v8::Boolean::New(isolate, preventsActivation))
+                : v8::Local<v8::Value>(v8::Null(isolate)))
+      .Check();
+
+  result
+      ->Set(context,
+            v8::String::NewFromUtf8Literal(isolate, "respondsToOrderFrontKeepWindowKeyState"),
+            v8::Boolean::New(isolate,
+                             [window respondsToSelector:@selector(orderFrontKeepWindowKeyState)]))
+      .Check();
 
   info.GetReturnValue().Set(result);
 }
@@ -157,6 +217,7 @@ void MakePanel(const v8::FunctionCallbackInfo<v8::Value>& info) {
 //   NSLog(@"class of main window before = %@", object_getClass(mainContentView.window));
 
   if ([nswindow isKindOfClass:[PROPanel class]]) {
+    SetPreventsActivation(nswindow, YES);
     return info.GetReturnValue().Set(true);
   }
 
@@ -183,6 +244,8 @@ void MakePanel(const v8::FunctionCallbackInfo<v8::Value>& info) {
 
   // Convert the NSWindow class to PROPanel
   object_setClass(nswindow, [PROPanel class]);
+
+  SetPreventsActivation(nswindow, YES);
 
 //   NSLog(@"class of main window after = %@", object_getClass(mainContentView.window));
 //   NSLog(@"stylemask after = %ld", mainContentView.window.styleMask);
@@ -240,6 +303,8 @@ void MakeWindow(const v8::FunctionCallbackInfo<v8::Value>& info) {
   object_setClass(newWindow, originalWindowClass);
   objc_setAssociatedObject(newWindow, kCanBecomeKeyWindowKey, nil, OBJC_ASSOCIATION_ASSIGN);
   objc_setAssociatedObject(newWindow, kCanBecomeMainWindowKey, nil, OBJC_ASSOCIATION_ASSIGN);
+
+  SetPreventsActivation(newWindow, NO);
 
   return info.GetReturnValue().Set(true);
 }
